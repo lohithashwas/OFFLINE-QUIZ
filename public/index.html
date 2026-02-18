@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quiz Participant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="join-screen">
+        <h1>Join Quiz</h1>
+        <input type="text" id="team-name" placeholder="Enter Team Name">
+        <button onclick="joinGame()">Join</button>
+    </div>
+
+    <div id="waiting-screen" class="hidden">
+        <div class="loader"></div>
+        <h2>Waiting for Host...</h2>
+        <p>Get ready!</p>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div id="timer-bar"></div>
+        <div class="content">
+            <h1 id="jumbled-word">WORD</h1>
+            <input type="text" id="answer-input" placeholder="Your Answer" autocomplete="off">
+            <button onclick="submitAnswer()" id="submit-btn">Submit</button>
+        </div>
+    </div>
+
+    <div id="feedback-screen" class="hidden">
+        <h2 id="feedback-msg">Answer Submitted!</h2>
+        <p>Wait for the next query.</p>
+    </div>
+
+    <div id="leaderboard-screen" class="hidden">
+        <h2>🏆 Game Over 🏆</h2>
+        <p>Final Standings:</p>
+        <table id="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Team</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+                <!-- Rows injected here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

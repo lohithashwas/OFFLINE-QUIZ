@@ -1,0 +1,263 @@
+/* Reset & Base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+    /* Prevent text selection */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+body {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Allow selection in inputs */
+input {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+/* Utilities */
+.hidden {
+    display: none !important;
+}
+
+/* Layout */
+#login-screen,
+#join-screen,
+#waiting-screen,
+#game-screen,
+#feedback-screen {
+    width: 100%;
+    max-width: 600px;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 5vh;
+}
+
+#dashboard {
+    width: 95%;
+    max-width: 1200px;
+    padding: 1rem;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #4CAF50;
+    letter-spacing: 2px;
+}
+
+h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: #fff;
+}
+
+/* Forms */
+input {
+    width: 100%;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 2px solid #333;
+    background: #2a2a2a;
+    color: #fff;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+input:focus {
+    border-color: #4CAF50;
+}
+
+button {
+    padding: 1rem 2rem;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s, background 0.3s;
+}
+
+button:hover {
+    background: #45a049;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.danger-btn {
+    background: #f44336;
+}
+
+.danger-btn:hover {
+    background: #d32f2f;
+}
+
+/* Dashboard Specifics */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #2a2a2a;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+#status-bar span {
+    margin-right: 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+}
+
+#questions-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+}
+
+.q-card {
+    background: #333;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.q-card:hover {
+    background: #444;
+}
+
+.q-card.active {
+    border: 2px solid #4CAF50;
+    background: #2e3b2e;
+}
+
+.q-card.done {
+    opacity: 0.5;
+}
+
+#answers-list {
+    list-style: none;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#answers-list li {
+    background: #2a2a2a;
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.correct {
+    color: #4CAF50;
+}
+
+.incorrect {
+    color: #f44336;
+}
+
+/* Game Screen */
+#jumbled-word {
+    font-size: 4rem;
+    letter-spacing: 5px;
+    margin: 3rem 0;
+    word-break: break-all;
+}
+
+#timer-bar {
+    height: 10px;
+    background: #4CAF50;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    transition: width 1s linear;
+}
+
+/* Animations */
+.loader {
+    border: 5px solid #333;
+    border-top: 5px solid #4CAF50;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Leaderboard */
+#leaderboard-table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    background: #2a2a2a;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#leaderboard-table th,
+#leaderboard-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+
+#leaderboard-table th {
+    background: #333;
+    color: #4CAF50;
+    font-size: 1.1rem;
+}
+
+#leaderboard-table tr:nth-child(even) {
+    background: #2f2f2f;
+}
+
+#leaderboard-table tr:hover {
+    background: #383838;
+}

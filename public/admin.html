@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Host - Admin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="login-screen">
+        <h1>Host Login</h1>
+        <input type="password" id="admin-password" placeholder="Enter Password">
+        <button onclick="login()">Login</button>
+        <p id="login-error" style="color: red; display: none;">Invalid Password</p>
+    </div>
+
+    <div id="dashboard" class="hidden">
+        <header>
+            <h1>Quiz Control Panel</h1>
+            <div id="status-bar">
+                <span>Teams Connected: <span id="team-count">0</span></span>
+                <span id="timer-display">00:00</span>
+                <button onclick="startTimerNow()" id="start-btn" class="active-btn" disabled>Start Timer</button>
+                <button onclick="stopTimer()" class="danger-btn">Stop Timer</button>
+                <button onclick="finishTest()" style="background: #2196F3;">Finish Test</button>
+            </div>
+            <div id="current-question-display"
+                style="text-align: center; margin: 10px; font-size: 1.2em; color: #4CAF50;">select a question</div>
+        </header>
+
+        <main id="main-content">
+            <section id="question-list">
+                <h2>Questions</h2>
+                <div id="questions-container">
+                    <!-- Questions injected here -->
+                </div>
+            </section>
+
+            <section id="live-feed">
+                <h2>Live Answers</h2>
+                <ul id="answers-list">
+                    <!-- Answers injected here -->
+                </ul>
+            </section>
+        </main>
+
+        <div id="leaderboard-screen" class="hidden">
+            <h1>🏆 Leaderboard 🏆</h1>
+            <table id="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Team</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <!-- Rows injected here -->
+                </tbody>
+            </table>
+
+            <h2 style="margin-top: 30px;">📄 Detailed Report</h2>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table id="details-table" style="width: 100%; border-collapse: collapse; background: #222;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 10px; background: #333; color: #fff;">Time</th>
+                            <th style="padding: 10px; background: #333; color: #fff;">Team</th>
+                            <th style="padding: 10px; background: #333; color: #fff;">Question</th>
+                            <th style="padding: 10px; background: #333; color: #fff;">User Answer</th>
+                            <th style="padding: 10px; background: #333; color: #fff;">Correct Answer</th>
+                            <th style="padding: 10px; background: #333; color: #fff;">Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="details-body">
+                        <!-- History Rows -->
+                    </tbody>
+                </table>
+            </div>
+
+            <button onclick="location.reload()" style="margin-top: 20px;">Restart System</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="questions_client.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>
