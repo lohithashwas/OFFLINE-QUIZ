@@ -167,6 +167,15 @@ main {
 
 .q-card.done {
     opacity: 0.5;
+    background: #1b3a1b;
+    pointer-events: none;
+    position: relative;
+}
+
+.done-check {
+    color: #4CAF50;
+    font-weight: bold;
+    font-size: 1.2rem;
 }
 
 #answers-list {
@@ -260,4 +269,99 @@ main {
 
 #leaderboard-table tr:hover {
     background: #383838;
+}
+
+/* ========== Invest Screen ========== */
+#invest-screen {
+    width: 100%;
+    max-width: 600px;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 5vh;
+}
+
+.invest-word-preview {
+    font-size: 3.5rem;
+    letter-spacing: 5px;
+    margin: 1.5rem 0;
+    color: #ff9800;
+    word-break: break-all;
+}
+
+.invest-info {
+    font-size: 1.1rem;
+    color: #bbb;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.invest-buttons {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.invest-btn {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    padding: 1.2rem 2.5rem;
+    font-size: 1.4rem;
+    border-radius: 12px;
+    animation: pulse-invest 2s ease-in-out infinite;
+    border: 2px solid #4CAF50;
+}
+
+.invest-btn:hover {
+    background: linear-gradient(135deg, #66BB6A, #388E3C);
+    transform: scale(1.05);
+}
+
+.pass-btn {
+    background: #555;
+    padding: 1.2rem 2.5rem;
+    font-size: 1.4rem;
+    border-radius: 12px;
+    border: 2px solid #666;
+}
+
+.pass-btn:hover {
+    background: #666;
+}
+
+.invest-subtext {
+    font-size: 0.9rem;
+    color: #777;
+    margin-top: 1rem;
+}
+
+@keyframes pulse-invest {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 20px 10px rgba(76, 175, 80, 0.15);
+    }
+}
+
+/* ========== Score Feedback ========== */
+.score-earned {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #4CAF50;
+    margin: 1rem 0 0.5rem;
+}
+
+.score-multiplier {
+    font-size: 1.1rem;
+    color: #ff9800;
+    margin: 0.5rem 0;
+}
+
+.score-lost {
+    font-size: 1.2rem;
+    color: #f44336;
+    margin: 1rem 0;
 }

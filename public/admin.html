@@ -20,7 +20,8 @@
         <header>
             <h1>Quiz Control Panel</h1>
             <div id="status-bar">
-                <span>Teams Connected: <span id="team-count">0</span></span>
+                <span>Teams: <span id="team-count">0</span></span>
+                <span id="invest-stats" style="color: #ff9800;">📊 Invested: 0 / 0</span>
                 <span id="timer-display">00:00</span>
                 <button onclick="startTimerNow()" id="start-btn" class="active-btn" disabled>Start Timer</button>
                 <button onclick="stopTimer()" class="danger-btn">Stop Timer</button>
@@ -69,8 +70,11 @@
                             <th style="padding: 10px; background: #333; color: #fff;">Time</th>
                             <th style="padding: 10px; background: #333; color: #fff;">Team</th>
                             <th style="padding: 10px; background: #333; color: #fff;">Question</th>
+                            <th style="padding: 10px; background: #333; color: #fff;">Invested?</th>
                             <th style="padding: 10px; background: #333; color: #fff;">User Answer</th>
                             <th style="padding: 10px; background: #333; color: #fff;">Correct Answer</th>
+                            <th style="padding: 10px; background: #333; color: #fff;">Multiplier</th>
+                            <th style="padding: 10px; background: #333; color: #fff;">Score</th>
                             <th style="padding: 10px; background: #333; color: #fff;">Result</th>
                         </tr>
                     </thead>

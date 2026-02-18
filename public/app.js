@@ -19,15 +19,20 @@ document.addEventListener("visibilitychange", () => {
 // UI Elements
 const joinScreen = document.getElementById('join-screen');
 const waitingScreen = document.getElementById('waiting-screen');
+const investScreen = document.getElementById('invest-screen');
 const gameScreen = document.getElementById('game-screen');
 const feedbackScreen = document.getElementById('feedback-screen');
+const leaderboardScreen = document.getElementById('leaderboard-screen');
 
 const teamInput = document.getElementById('team-name');
 const jumbledWord = document.getElementById('jumbled-word');
+const investWord = document.getElementById('invest-word');
 const answerInput = document.getElementById('answer-input');
 const timerBar = document.getElementById('timer-bar');
+const scoreDetails = document.getElementById('score-details');
 
 let myTeamName = "";
+let myInvested = false;
 
 // On Load: Check for existing session
 window.addEventListener('load', () => {
@@ -57,31 +62,32 @@ socket.on('connect', () => {
     if (myTeamName) {
         console.log('Auto-rejoining as:', myTeamName);
         socket.emit('join_game', myTeamName);
-
-        // If we were in a game, request state? 
-        // For now, just being in the teams list is enough to verify answers.
     }
 });
 
-// Socket Events
-socket.on('question_ready', (data) => {
-    console.log('Event received: question_ready', data);
-
-    // reset UI - Hide ALL overlays
+// Helper: hide all screens
+function hideAllScreens() {
+    joinScreen.classList.add('hidden');
     waitingScreen.classList.add('hidden');
+    investScreen.classList.add('hidden');
+    gameScreen.classList.add('hidden');
     feedbackScreen.classList.add('hidden');
-    document.getElementById('leaderboard-screen').classList.add('hidden');
-    gameScreen.classList.remove('hidden');
+    leaderboardScreen.classList.add('hidden');
+}
 
-    // Reset & Disable inputs
-    answerInput.value = "";
-    answerInput.disabled = true;
-    answerInput.placeholder = "Wait for timer...";
-    document.getElementById('submit-btn').disabled = true;
+// ========== INVEST PHASE ==========
+socket.on('invest_phase', (data) => {
+    console.log('Event received: invest_phase', data);
 
-    // Set Word
-    jumbledWord.innerText = data.question;
-    jumbledWord.style.opacity = "0.5";
+    hideAllScreens();
+    investScreen.classList.remove('hidden');
+
+    // Show the jumbled word preview
+    investWord.innerText = data.question;
+    myInvested = false;
+
+    // Reset score details
+    scoreDetails.innerHTML = '';
 
     // Reset Timer Bar
     if (timerInterval) clearInterval(timerInterval);
@@ -89,18 +95,33 @@ socket.on('question_ready', (data) => {
     timerBar.style.backgroundColor = '#ccc';
 });
 
+function investChoice(invested) {
+    myInvested = invested;
+    socket.emit('submit_invest', invested);
+
+    // Show waiting state within invest screen
+    hideAllScreens();
+    waitingScreen.classList.remove('hidden');
+    document.querySelector('#waiting-screen h2').innerText = invested
+        ? '📈 Invested! Waiting for timer...'
+        : '🛡️ Passed! Waiting for timer...';
+    document.querySelector('#waiting-screen p').innerText = 'Host will start the round soon.';
+}
+
+// ========== TIMER STARTED ==========
 socket.on('timer_started', (data) => {
-    // Show game screen if not already visible (for late joiners)
-    waitingScreen.classList.add('hidden');
-    feedbackScreen.classList.add('hidden');
+    console.log('Event received: timer_started', data);
+
+    hideAllScreens();
     gameScreen.classList.remove('hidden');
 
-    // Update Question if provided (for late joiners)
+    // Update Question (for late joiners too)
     if (data.question) {
         jumbledWord.innerText = data.question;
     }
 
     // Enable inputs
+    answerInput.value = "";
     answerInput.disabled = false;
     answerInput.placeholder = "Your Answer";
     answerInput.focus();
@@ -113,18 +134,60 @@ socket.on('timer_started', (data) => {
     startTimer(remaining);
 });
 
+// ========== TIME UP ==========
 socket.on('time_up', () => {
-    gameScreen.classList.add('hidden');
-    waitingScreen.classList.add('hidden');
+    hideAllScreens();
     feedbackScreen.classList.remove('hidden');
-    document.getElementById('feedback-msg').innerText = "Time's Up!";
+    document.getElementById('feedback-msg').innerText = "⏰ Time's Up!";
+    scoreDetails.innerHTML = '<p style="color: #ff9800;">No answer submitted in time.</p>';
 });
 
+// ========== ANSWER SUBMISSION ==========
+function submitAnswer() {
+    const answer = answerInput.value.trim();
+    if (!answer) return;
+
+    socket.emit('submit_answer', answer);
+
+    // Disable further input
+    answerInput.disabled = true;
+    document.getElementById('submit-btn').disabled = true;
+
+    // Show immediate feedback (will be updated when answer_result arrives)
+    hideAllScreens();
+    feedbackScreen.classList.remove('hidden');
+    document.getElementById('feedback-msg').innerText = "Answer Submitted!";
+    scoreDetails.innerHTML = '<div class="loader" style="width:30px;height:30px;margin:1rem auto;"></div>';
+}
+
+// ========== ANSWER RESULT (from server) ==========
+socket.on('answer_result', (data) => {
+    hideAllScreens();
+    feedbackScreen.classList.remove('hidden');
+
+    if (data.isCorrect) {
+        document.getElementById('feedback-msg').innerText = "✅ Correct!";
+        let details = `<p class="score-earned">+${data.score} pts</p>`;
+        if (data.invested && data.multiplier) {
+            details += `<p class="score-multiplier">📈 Invested · ${data.multiplier}× multiplier · Position #${data.position}</p>`;
+        } else {
+            details += `<p class="score-multiplier">🛡️ Safe play · Flat 10 pts</p>`;
+        }
+        scoreDetails.innerHTML = details;
+    } else {
+        document.getElementById('feedback-msg').innerText = "❌ Wrong!";
+        if (data.invested) {
+            scoreDetails.innerHTML = '<p class="score-lost">📈 Invested · 0 pts (wrong answer)</p>';
+        } else {
+            scoreDetails.innerHTML = '<p class="score-lost">🛡️ Passed · 0 pts (wrong answer)</p>';
+        }
+    }
+});
+
+// ========== GAME OVER ==========
 socket.on('game_over', (data) => {
-    waitingScreen.classList.add('hidden');
-    gameScreen.classList.add('hidden');
-    feedbackScreen.classList.add('hidden');
-    document.getElementById('leaderboard-screen').classList.remove('hidden');
+    hideAllScreens();
+    leaderboardScreen.classList.remove('hidden');
 
     const tbody = document.getElementById('leaderboard-body');
     tbody.innerHTML = '';
@@ -145,17 +208,7 @@ socket.on('game_over', (data) => {
     });
 });
 
-function submitAnswer() {
-    const answer = answerInput.value.trim();
-    if (!answer) return;
-
-    socket.emit('submit_answer', answer);
-
-    gameScreen.classList.add('hidden');
-    feedbackScreen.classList.remove('hidden');
-    document.getElementById('feedback-msg').innerText = "Answer Submitted!";
-}
-
+// ========== TIMER ANIMATION ==========
 let timerInterval;
 function startTimer(durationMs) {
     if (timerInterval) clearInterval(timerInterval);

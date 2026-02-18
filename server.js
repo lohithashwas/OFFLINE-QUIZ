@@ -14,11 +14,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Game State
 let currentQuestionIndex = -1;
 let isTimerRunning = false;
+let isInvestPhase = false;
 let timerEndTime = 0;
 let participantAnswers = {}; // { socketId: { teamName, answer, time } }
 let teams = {}; // { socketId: teamName }
-let fullAnswerHistory = []; // [ { team, question, answer, isCorrect, time } ]
+let fullAnswerHistory = []; // [ { team, question, answer, isCorrect, time, score } ]
 let teamScores = {}; // { socketId: score }
+let investedTeams = {}; // { socketId: true/false }
+let submissionOrder = 0; // tracks answer submission position per question
+
+// Scoring Config
+const BASE_POINTS = 10;
+const MAX_BONUS = 1; // A in the formula
 
 const PASSWORD = "123@123";
 
@@ -36,8 +43,8 @@ io.on('connection', (socket) => {
                     question: questions[currentQuestionIndex].jumbled,
                     endTime: timerEndTime
                 });
-            } else {
-                socket.emit('question_ready', {
+            } else if (isInvestPhase) {
+                socket.emit('invest_phase', {
                     question: questions[currentQuestionIndex].jumbled
                 });
             }
@@ -59,20 +66,22 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Admin starts question
-    // Admin sets question (Get Ready)
+    // Admin sets question (Invest Phase)
     socket.on('set_question', (questionId) => {
         console.log(`Command received: set_question(${questionId})`);
         const index = questions.findIndex(q => q.id === questionId);
         if (index !== -1) {
             currentQuestionIndex = index;
             participantAnswers = {};
-            isTimerRunning = false; // Reset timer state
+            investedTeams = {};
+            submissionOrder = 0;
+            isTimerRunning = false;
+            isInvestPhase = true;
 
             console.log(`Question set to Index: ${index}, Word: ${questions[index].jumbled}`);
 
-            // Broadcast "Get Ready" state
-            io.emit('question_ready', {
+            // Broadcast "Invest Phase" — participants choose invest or pass
+            io.emit('invest_phase', {
                 question: questions[index].jumbled
             });
         } else {
@@ -80,11 +89,34 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Participant submits invest/pass decision
+    socket.on('submit_invest', (invested) => {
+        const teamName = teams[socket.id];
+        if (!teamName || !isInvestPhase) return;
+
+        investedTeams[socket.id] = !!invested;
+        console.log(`${teamName} chose to ${invested ? 'INVEST' : 'PASS'}`);
+
+        const investCount = Object.values(investedTeams).filter(v => v).length;
+        const totalDecided = Object.keys(investedTeams).length;
+        const totalTeams = Object.keys(teams).length;
+
+        io.emit('admin_invest_update', {
+            investCount: investCount,
+            totalDecided: totalDecided,
+            totalTeams: totalTeams
+        });
+    });
+
     // Admin manually starts timer
     socket.on('start_timer_now', () => {
         console.log('Command received: start_timer_now');
         if (currentQuestionIndex !== -1) {
             const index = currentQuestionIndex;
+
+            // End invest phase, reset submission order
+            isInvestPhase = false;
+            submissionOrder = 0;
 
             // Start Timer (60 seconds)
             const duration = 60 * 1000;
@@ -126,15 +158,38 @@ io.on('connection', (socket) => {
         }
 
         if (teamName && !participantAnswers[socket.id]) {
-            // Case Insensitive Check (User Request Update)
+            // Case Insensitive Check
             const isCorrect = answer.toUpperCase() === questions[currentQuestionIndex].answer.toUpperCase();
             const timestamp = new Date().toLocaleTimeString();
+            const isInvested = !!investedTeams[socket.id];
+
+            // Calculate score using stock multiplier
+            let earnedScore = 0;
+            let multiplier = 1;
+            let position = 0;
+
+            if (isCorrect) {
+                submissionOrder++;
+                position = submissionOrder;
+                const N = Object.keys(teams).length;
+                const T = Math.ceil(N / 2);
+
+                if (isInvested) {
+                    multiplier = 1 + MAX_BONUS * (1 - (position - 1) / T);
+                    earnedScore = Math.round(BASE_POINTS * multiplier);
+                } else {
+                    earnedScore = BASE_POINTS;
+                }
+            }
+            // Wrong answers = 0 points regardless
 
             participantAnswers[socket.id] = {
                 teamName: teamName,
                 answer: answer,
                 time: Date.now(),
-                isCorrect: isCorrect
+                isCorrect: isCorrect,
+                invested: isInvested,
+                score: earnedScore
             };
 
             // Track History
@@ -144,20 +199,35 @@ io.on('connection', (socket) => {
                 answer: answer,
                 correctAnswer: questions[currentQuestionIndex].answer,
                 isCorrect: isCorrect,
+                invested: isInvested,
+                score: earnedScore,
+                multiplier: isInvested ? multiplier.toFixed(2) : '-',
+                position: position,
                 time: timestamp
             });
 
-            // Update Score
-            if (isCorrect) {
-                if (!teamScores[socket.id]) teamScores[socket.id] = 0;
-                teamScores[socket.id] += 1; // 1 Mark per question
-            }
+            // Update cumulative score
+            if (!teamScores[socket.id]) teamScores[socket.id] = 0;
+            teamScores[socket.id] += earnedScore;
 
-            // Send to Admin only
+            // Send result back to the participant
+            socket.emit('answer_result', {
+                isCorrect: isCorrect,
+                score: earnedScore,
+                invested: isInvested,
+                multiplier: isInvested ? multiplier.toFixed(2) : null,
+                position: position
+            });
+
+            // Send to Admin
             io.emit('admin_answer_update', {
                 teamName: teamName,
                 answer: answer,
-                isCorrect: isCorrect
+                isCorrect: isCorrect,
+                invested: isInvested,
+                score: earnedScore,
+                multiplier: isInvested ? multiplier.toFixed(2) : '-',
+                position: position
             });
         }
     });

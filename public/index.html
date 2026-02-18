@@ -21,6 +21,17 @@
         <p>Get ready!</p>
     </div>
 
+    <div id="invest-screen" class="hidden">
+        <h2>📊 Make Your Call</h2>
+        <h1 id="invest-word" class="invest-word-preview">WORD</h1>
+        <p class="invest-info">Investors earn more if they answer fast — but lose points if they're slow!</p>
+        <div class="invest-buttons">
+            <button onclick="investChoice(true)" class="invest-btn">📈 Invest</button>
+            <button onclick="investChoice(false)" class="pass-btn">🛡️ Pass</button>
+        </div>
+        <p class="invest-subtext">Pass = safe flat 10 pts for correct answer</p>
+    </div>
+
     <div id="game-screen" class="hidden">
         <div id="timer-bar"></div>
         <div class="content">
@@ -32,7 +43,8 @@
 
     <div id="feedback-screen" class="hidden">
         <h2 id="feedback-msg">Answer Submitted!</h2>
-        <p>Wait for the next query.</p>
+        <div id="score-details"></div>
+        <p>Wait for the next question.</p>
     </div>
 
     <div id="leaderboard-screen" class="hidden">
